@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
-from setuptools import setup
-from gluon.fileutils import tar, untar, read_file, write_file
-import tarfile
+from setuptools import setup, find_packages
 import sys
 
 
@@ -10,7 +8,9 @@ def tar(file, filelist, expression='^.+$'):
     """
     tars dir/files into file, only tars file that match expression
     """
-
+    from gluon.fileutils import tar, untar, read_file, write_file
+    import tarfile
+    
     tar = tarfile.TarFile(file, 'w')
     try:
         for element in filelist:
@@ -27,9 +27,10 @@ def start():
     if 'sdist' in sys.argv:
         tar('gluon/env.tar', ['applications', 'VERSION',
                               'extras/icons/splashlogo.gif'])
-
+    with open('VERSION','r') as f:
+        version = f.read()
     setup(name='web2py',
-          version=read_file("VERSION").split()[1],
+          version=version.split()[1],
           description="""full-stack framework for rapid development and prototyping
         of secure database-driven web-based applications, written and
         programmable in Python.""",
@@ -51,22 +52,8 @@ def start():
           license='http://web2py.com/examples/default/license',
           classifiers=["Development Status :: 5 - Production/Stable"],
           url='http://web2py.com',
-          platforms='Windows, Linux, Mac, Unix,Windows Mobile',
-          packages=['gluon',
-                    'gluon/contrib',
-                    'gluon/contrib/gateways',
-                    'gluon/contrib/login_methods',
-                    'gluon/contrib/markdown',
-                    'gluon/contrib/markmin',
-                    'gluon/contrib/memcache',
-                    'gluon/contrib/fpdf',
-                    'gluon/contrib/pymysql',
-                    'gluon/contrib/pyrtf',
-                    'gluon/contrib/pysimplesoap',
-                    'gluon/contrib/pg8000',
-                    'gluon/contrib/plural_rules',
-                    'gluon/tests',
-                    ],
+          platforms='Windows, Linux, Mac, Unix, Windows Mobile',
+          packages=find_packages(),
           package_data={'gluon': ['env.tar']},
 #          scripts=['w2p_apps', 'w2p_run', 'w2p_clone'],
           )
