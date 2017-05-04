@@ -20,7 +20,7 @@ import urllib
 import base64
 from gluon import sanitizer, decoder
 import itertools
-from gluon._compat import reduce, pickle, copyreg, HTMLParser, name2codepoint, iteritems, unichr, unicodeT, urllib_quote, to_bytes, to_native, to_unicode, basestring, urlencode, implements_bool, text_type
+from gluon._compat import reduce, pickle, copyreg, HTMLParser, name2codepoint, iteritems, unichr, unicodeT, urllib_quote, to_bytes, to_native, to_unicode, basestring, urlencode, implements_bool, text_type, long
 from gluon.utils import local_html_escape
 import marshal
 
@@ -552,7 +552,7 @@ class XML(XmlComponent):
 
     Examples:
 
-    >>> XML('<h1>Hello</h1>').xml()
+    >>> to_native(XML('<h1>Hello</h1>').xml())
     '<h1>Hello</h1>'
     """
 
@@ -682,7 +682,7 @@ class DIV(XmlComponent):
 
     Examples:
 
-    >>> DIV('hello', 'world', _style='color:red;').xml()
+    >>> to_native(DIV('hello', 'world', _style='color:red;').xml())
     '<div style=\"color:red;\">helloworld</div>'
 
     All other HTML helpers are derived from `DIV`.
@@ -998,9 +998,9 @@ class DIV(XmlComponent):
             if isinstance(c, XmlComponent):
                 s = c.flatten(render)
             elif render:
-                s = render(str(c))
+                s = render(to_native(c))
             else:
-                s = str(c)
+                s = to_native(c)
             text += s
         if render:
             text = render(text, self.tag, self.attributes)
@@ -1038,11 +1038,11 @@ class DIV(XmlComponent):
         world
         >>> for e in a.elements('#1-1'): print(e.flatten())
         hello
-        >>> a.elements('a[u:v=$]')[0].xml()
+        >>> to_native(a.elements('a[u:v=$]')[0].xml())
         '<a id="1-1" u:v="$">hello</a>'
         >>> a=FORM( INPUT(_type='text'), SELECT(list(range(1))), TEXTAREA() )
         >>> for c in a.elements('input, select, textarea'): c['_disabled'] = 'disabled'
-        >>> a.xml()
+        >>> to_native(a.xml())
         '<form action="#" enctype="multipart/form-data" method="post"><input disabled="disabled" type="text" /><select disabled="disabled"><option value="0">0</option></select><textarea cols="40" disabled="disabled" rows="10"></textarea></form>'
 
         Elements that are matched can also be replaced or removed by specifying
@@ -1281,7 +1281,6 @@ class __TAG__(XmlComponent):
     def __getattr__(self, name):
         if name[-1:] == '_':
             name = name[:-1] + '/'
-        name=to_bytes(name)
         return lambda *a, **b: __tag_div__(name, *a, **b)
 
     def __call__(self, html):
@@ -1815,16 +1814,16 @@ class INPUT(DIV):
 
     Examples:
 
-    >>> INPUT(_type='text', _name='name', value='Max').xml()
+    >>> to_native(INPUT(_type='text', _name='name', value='Max').xml())
     '<input name=\"name\" type=\"text\" value=\"Max\" />'
 
-    >>> INPUT(_type='checkbox', _name='checkbox', value='on').xml()
+    >>> to_native(INPUT(_type='checkbox', _name='checkbox', value='on').xml())
     '<input checked=\"checked\" name=\"checkbox\" type=\"checkbox\" value=\"on\" />'
 
-    >>> INPUT(_type='radio', _name='radio', _value='yes', value='yes').xml()
+    >>> to_native(INPUT(_type='radio', _name='radio', _value='yes', value='yes').xml())
     '<input checked=\"checked\" name=\"radio\" type=\"radio\" value=\"yes\" />'
 
-    >>> INPUT(_type='radio', _name='radio', _value='no', value='yes').xml()
+    >>> to_native(INPUT(_type='radio', _name='radio', _value='no', value='yes').xml())
     '<input name=\"radio\" type=\"radio\" value=\"no\" />'
 
 
@@ -1984,9 +1983,9 @@ class SELECT(INPUT):
     """
     Examples:
 
-    >>> from validators import IS_IN_SET
-    >>> SELECT('yes', 'no', _name='selector', value='yes',
-    ...    requires=IS_IN_SET(['yes', 'no'])).xml()
+    >>> from gluon.validators import IS_IN_SET
+    >>> to_native(SELECT('yes', 'no', _name='selector', value='yes',
+    ...                  requires=IS_IN_SET(['yes', 'no'])).xml())
     '<select name=\"selector\"><option selected=\"selected\" value=\"yes\">yes</option><option value=\"no\">no</option></select>'
 
     """
@@ -2046,9 +2045,9 @@ class FORM(DIV):
     """
     Examples:
 
-    >>> from validators import IS_NOT_EMPTY
+    >>> from gluon.validators import IS_NOT_EMPTY
     >>> form=FORM(INPUT(_name="test", requires=IS_NOT_EMPTY()))
-    >>> form.xml()
+    >>> to_native(form.xml())
     '<form action=\"#\" enctype=\"multipart/form-data\" method=\"post\"><input name=\"test\" type=\"text\" /></form>'
 
 
@@ -2376,7 +2375,7 @@ class FORM(DIV):
 
     def as_json(self, sanitize=True):
         d = self.as_dict(flat=True, sanitize=sanitize)
-        from serializers import json
+        from gluon.serializers import json
         return json(d)
 
     def as_yaml(self, sanitize=True):
@@ -2404,7 +2403,7 @@ class BEAUTIFY(DIV):
 
     Examples:
 
-    >>> BEAUTIFY(['a', 'b', {'hello': 'world'}]).xml()
+    >>> to_native(BEAUTIFY(['a', 'b', {'hello': 'world'}]).xml())
     '<div><table><tr><td><div>a</div></td></tr><tr><td><div>b</div></td></tr><tr><td><div><table><tr><td style="font-weight:bold;vertical-align:top;">hello</td><td style="vertical-align:top;">:</td><td><div>world</div></td></tr></table></div></td></tr></table></div>'
 
     """
@@ -2607,35 +2606,35 @@ def test():
     """
     Example:
 
-    >>> from validators import *
-    >>> print(DIV(A('click me', _href=URL(a='a', c='b', f='c')), BR(), HR(), DIV(SPAN("World"), _class='unknown')).xml())
+    >>> from gluon.validators import *
+    >>> print(DIV(A('click me', _href=URL(a='a', c='b', f='c')), BR(), HR(), DIV(SPAN("World"), _class='unknown')))
     <div><a href="/a/b/c">click me</a><br /><hr /><div class=\"unknown\"><span>World</span></div></div>
-    >>> print(DIV(UL("doc","cat","mouse")).xml())
+    >>> print(DIV(UL("doc","cat","mouse")))
     <div><ul><li>doc</li><li>cat</li><li>mouse</li></ul></div>
-    >>> print(DIV(UL("doc", LI("cat", _class='feline'), 18)).xml())
+    >>> print(DIV(UL("doc", LI("cat", _class='feline'), 18)))
     <div><ul><li>doc</li><li class=\"feline\">cat</li><li>18</li></ul></div>
-    >>> print(TABLE(['a', 'b', 'c'], TR('d', 'e', 'f'), TR(TD(1), TD(2), TD(3))).xml())
+    >>> print(TABLE(['a', 'b', 'c'], TR('d', 'e', 'f'), TR(TD(1), TD(2), TD(3))))
     <table><tr><td>a</td><td>b</td><td>c</td></tr><tr><td>d</td><td>e</td><td>f</td></tr><tr><td>1</td><td>2</td><td>3</td></tr></table>
     >>> form=FORM(INPUT(_type='text', _name='myvar', requires=IS_EXPR('int(value)<10')))
-    >>> print(form.xml())
+    >>> print(form)
     <form action=\"#\" enctype=\"multipart/form-data\" method=\"post\"><input name=\"myvar\" type=\"text\" /></form>
     >>> print(form.accepts({'myvar':'34'}, formname=None))
     False
-    >>> print(form.xml())
+    >>> print(form)
     <form action="#" enctype="multipart/form-data" method="post"><input class="invalidinput" name="myvar" type="text" value="34" /><div class="error_wrapper"><div class="error" id="myvar__error">Invalid expression</div></div></form>
     >>> print(form.accepts({'myvar':'4'}, formname=None, keepvalues=True))
     True
-    >>> print(form.xml())
+    >>> print(form)
     <form action=\"#\" enctype=\"multipart/form-data\" method=\"post\"><input name=\"myvar\" type=\"text\" value=\"4\" /></form>
     >>> form=FORM(SELECT('cat', 'dog', _name='myvar'))
     >>> print(form.accepts({'myvar':'dog'}, formname=None, keepvalues=True))
     True
-    >>> print(form.xml())
+    >>> print(form)
     <form action=\"#\" enctype=\"multipart/form-data\" method=\"post\"><select name=\"myvar\"><option value=\"cat\">cat</option><option selected=\"selected\" value=\"dog\">dog</option></select></form>
     >>> form=FORM(INPUT(_type='text', _name='myvar', requires=IS_MATCH('^\w+$', 'only alphanumeric!')))
     >>> print(form.accepts({'myvar':'as df'}, formname=None))
     False
-    >>> print(form.xml())
+    >>> print(form)
     <form action="#" enctype="multipart/form-data" method="post"><input class="invalidinput" name="myvar" type="text" value="as df" /><div class="error_wrapper"><div class="error" id="myvar__error">only alphanumeric!</div></div></form>
     >>> session={}
     >>> form=FORM(INPUT(value="Hello World", _name="var", requires=IS_MATCH('^\w+$')))
@@ -2680,11 +2679,12 @@ class web2pyHTMLParser(HTMLParser):
             if tagname in self.closed:
                 tagname += '/'
             tag = TAG[tagname]()
+
         for key, value in attrs:
             tag['_' + key] = value
         tag.parent = self.parent
         self.parent.append(tag)
-        if not tag.tag.endswith(b'/'):
+        if not tag.tag.endswith('/'):
             self.parent = tag
         else:
             self.last = tag.tag[:-1]
@@ -2707,7 +2707,7 @@ class web2pyHTMLParser(HTMLParser):
         self.parent.append(entitydefs[name])
 
     def handle_endtag(self, tagname):
-        tagname = to_bytes(tagname)
+        tagname = tagname
         # this deals with unbalanced tags
         if tagname == self.last:
             return

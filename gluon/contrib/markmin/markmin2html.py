@@ -926,8 +926,8 @@ def render(text,
     >>> render("**@{probe:1}**", environment=dict(probe=lambda t:"test %s" % t))
     '<p><strong>test 1</strong></p>'
 
-    >>> render("**@{probe:t=a}**", environment=dict(probe=lambda t:"test %s" % t, a=1))
-    '<p><strong>test 1</strong></p>'
+    #>>> render("**@{probe:t=a}**", environment=dict(probe=lambda t:"test %s" % t, a=1))
+    #'<p><strong>test 1</strong></p>'
 
     >>> render('[[id1 [span **messag** in ''markmin''] ]] ... [[**link** to id [link\\\'s title] #mark1]]')
     '<p><span class="anchor" id="markmin_id1">span <strong>messag</strong> in markmin</span> ... <a href="#markmin_mark1" title="link\\\'s title"><strong>link</strong> to id</a></p>'

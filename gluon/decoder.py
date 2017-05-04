@@ -11,6 +11,7 @@ Licensed under the PSF License
 """
 
 import codecs
+from gluon._compat import to_bytes, to_unicode
 
 # None represents a potentially variable byte. "##" in the XML spec...
 autodetect_dict = {  # bytepattern     : ("name",
@@ -50,6 +51,7 @@ def autoDetectXMLEncoding(buffer):
     else:
         enc_info = None
 
+
     if enc_info:
         encoding = enc_info  # we've got a guess... these are
                              #the new defaults
@@ -77,4 +79,4 @@ def autoDetectXMLEncoding(buffer):
 
 def decoder(buffer):
     encoding = autoDetectXMLEncoding(buffer)
-    return buffer.decode(encoding).encode('utf8')
+    return to_unicode(buffer, charset=encoding)

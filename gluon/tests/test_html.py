@@ -11,11 +11,13 @@ import unittest
 from gluon.html import A, ASSIGNJS, B, BEAUTIFY, P, BODY, BR, BUTTON, CAT, CENTER, CODE, COL, COLGROUP, DIV, SPAN, URL, verifyURL
 from gluon.html import truncate_string, EM, FIELDSET, FORM, H1, H2, H3, H4, H5, H6, HEAD, HR, HTML, I, IFRAME, IMG, INPUT, EMBED
 from gluon.html import LABEL, LEGEND, LI, LINK, MARKMIN, MENU, META, OBJECT, OL, OPTGROUP, OPTION, PRE, SCRIPT, SELECT, STRONG
-from gluon.html import STYLE, TABLE, TR, TD, TAG, TBODY, THEAD, TEXTAREA, TFOOT, TH, TITLE, TT, UL, XHTML, XML
+from gluon.html import STYLE, TABLE, TR, TD, TAG, TBODY, THEAD, TEXTAREA, TFOOT, TH, TITLE, TT, UL, XHTML, XML, web2pyHTMLParser
 from gluon.storage import Storage
 from gluon.html import XML_pickle, XML_unpickle
 from gluon.html import TAG_pickler, TAG_unpickler
-from gluon._compat import xrange, PY2, to_native
+from gluon._compat import xrange, PY2, to_native, to_bytes
+from gluon.decoder import decoder
+import re
 
 class TestBareHelpers(unittest.TestCase):
 
@@ -254,6 +256,11 @@ class TestBareHelpers(unittest.TestCase):
         # test .get('attrib')
         self.assertEqual(DIV('<p>Test</p>', _class="class_test").get('_class'), 'class_test')
         self.assertEqual(DIV(b'a').xml(), b'<div>a</div>')
+
+    def test_decoder(self):
+        tag_html = '<div><span><a id="1-1" u:v="$">hello</a></span><p class="this is a test">world</p></div>'
+        a = decoder(tag_html)
+        self.assertEqual(a, tag_html)
 
     def test_CAT(self):
         # Empty CAT()
@@ -670,9 +677,21 @@ class TestBareHelpers(unittest.TestCase):
 
     # TODO: def test_embed64(self):
 
-    # TODO: def test_web2pyHTMLParser(self):
-
     # TODO: def test_markdown_serializer(self):
+
+    def test_web2pyHTMLParser(self):
+        #tag should not be a byte
+        self.assertEqual(web2pyHTMLParser("<div></div>").tree.components[0].tag, 'div')
+
+    def test_markdown(self):
+        def markdown(text, tag=None, attributes={}):
+            r = {None: re.sub('\s+',' ',text), \
+                 'h1':'#'+text+'\\n\\n', \
+                 'p':text+'\\n'}.get(tag,text)
+            return r
+        a=TAG('<h1>Header</h1><p>this is a     test</p>')
+        ret = a.flatten(markdown)
+        self.assertEqual(ret, '#Header\\n\\nthis is a test\\n')
 
     # TODO: def test_markmin_serializer(self):
 

@@ -11,7 +11,7 @@ Utilities and class for UTF8 strings managing
 ----------------------------------------------
 """
 from __future__ import print_function
-from gluon._compat import builtin as __builtin__, unicodeT, iteritems, to_unicode, to_native
+from gluon._compat import builtin as __builtin__, unicodeT, iteritems, to_unicode, to_native, PY2
 
 __all__ = ['Utf8']
 
@@ -99,7 +99,10 @@ def truncate(string, length, dots='...'):
     return str.__new__(Utf8, text.encode('utf-8'))
 
 
-class Utf8(str):
+class Utf8_p3(str):
+    pass
+
+class Utf8_p27(str):
     """
     Class for utf8 string storing and manipulations
 
@@ -144,15 +147,15 @@ class Utf8(str):
 
         Unlike str.repr(), Utf8.__repr__() remains utf8 content when processing utf8 string::
 
-            >>> repr(Utf8('中文字')) == repr(Utf8("中文字")) == "'中文字'" != repr('中文字')
+            >>> repr(Utf8('中文字')) == repr(Utf8("中文字")) == "'中文字'"
             True
-            >>> repr(Utf8('中"文"字')) == "'中\"文\"字'" != repr('中"文"字')
+            >>> repr(Utf8('中"文"字')) == "'中\"文\"字'"
             True
-            >>> repr(Utf8("中'文'字")) == '"中\'文\'字"' != repr("中'文'字")
+            >>> repr(Utf8("中'文'字")) == '"中\'文\'字"'
             True
-            >>> repr(Utf8('中\'文"字')) == repr(Utf8("中'文\"字")) == '\'中\\\'文"字\'' != repr('中\'文"字') == repr("中'文\"字")
+            >>> repr(Utf8('中\'文"字')) == repr(Utf8("中'文\"字")) == '\'中\\\'文"字\''
             True
-            >>> repr(Utf8('中\r\n文')) == "'中\\r\\n文'" != repr('中\r\n文') # Test for \r, \n
+            >>> repr(Utf8('中\r\n文')) == "'中\\r\\n文'" # Test for \r, \n
             True
         '''
         if str.find(self, "'") >= 0 and str.find(self, '"') < 0:  # only single quote exists
@@ -366,6 +369,10 @@ class Utf8(str):
     def __lt__(self, string):
         return sort_key(self) < sort_key(string)
 
+if PY2:
+    Utf8 = Utf8_p27
+else:
+    Utf8 = Utf8_p3
 
 if __name__ == '__main__':
     def doctests():
