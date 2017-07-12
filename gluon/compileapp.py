@@ -447,14 +447,12 @@ def build_environment(request, response, session, store_current=True):
     return environment
 
 
-def save_pyc(filename, scode):
+def save_pyc(filename):
     """
     Bytecode compiles the file `filename`
     """
-    write_file(filename, scode)
     cfile = "%sc" % filename
     py_compile.compile(filename, cfile=cfile)
-    os.unlink(filename)
 
 
 def read_pyc(filename):
@@ -489,7 +487,9 @@ def compile_views(folder, skip_failed_views=False):
         else:
             filename = 'views.%s.py' % fname.replace(os.path.sep, '.')
             filename = pjoin(folder, 'compiled', filename)
-            save_pyc(filename, data)
+            write_file(filename, data)
+            save_pyc(filename)
+            os.unlink(filename)
     return failed_views if failed_views else None
 
 
@@ -500,11 +500,13 @@ def compile_models(folder):
 
     path = pjoin(folder, 'models')
     for fname in listdir(path, '.+\.py$'):
-        scode = read_file(pjoin(path, fname))
+        data = read_file(pjoin(path, fname))
         modelfile = 'models.'+fname.replace(os.path.sep, '.')
         filename = pjoin(folder, 'compiled', modelfile)
         mktree(filename)
-        save_pyc(filename, scode)
+        write_file(filename, data)
+        save_pyc(filename)
+        os.unlink(filename)
 
 
 def find_exposed_functions(data):
@@ -520,13 +522,16 @@ def compile_controllers(folder):
     path = pjoin(folder, 'controllers')
     for fname in listdir(path, '.+\.py$'):
         ### why is this here? save_pyc(pjoin(path, file))
-        scode = read_file(pjoin(path, fname))
-        exposed = find_exposed_functions(scode)
+        data = read_file(pjoin(path, fname))
+        exposed = find_exposed_functions(data)
         for function in exposed:
-            scode = "%s\nresponse._vars=response._caller(%s)" % (scode, function)
+            command = data + "\nresponse._vars=response._caller(%s)\n" % \
+                function
             filename = pjoin(folder, 'compiled',
                              'controllers.%s.%s.py' % (fname[:-3], function))
-            save_pyc(filename, scode)
+            write_file(filename, command)
+            save_pyc(filename)
+            os.unlink(filename)
 
 
 def model_cmp(a, b, sep='.'):
