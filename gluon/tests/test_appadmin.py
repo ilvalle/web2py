@@ -10,7 +10,7 @@ import sys
 import unittest
 
 
-from gluon.compileapp import run_controller_in, run_view_in, compile_application, remove_compiled_application
+from gluon.compileapp import build_environment, run_controller_in, run_view_in, compile_application, run_models_in, remove_compiled_application
 from gluon.languages import translator
 from gluon.storage import Storage, List
 from gluon import fileutils
@@ -89,6 +89,9 @@ class TestAppAdmin(unittest.TestCase):
         self.assertTrue('db' in result['databases'])
         self.env.update(result)
         try:
+            model_env = build_environment(self.env['request'], self.env['response'], self.env['session'])
+            run_models_in(model_env)
+            self.assertTrue('myconf' in model_env)
             self.run_view()
             self.run_view_file_stream()
         except Exception as e:

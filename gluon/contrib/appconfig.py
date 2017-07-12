@@ -29,7 +29,7 @@ is restarted (or reload=True is passed).
 """
 import os
 import json
-from gluon._compat import thread, configparser
+from gluon._compat import thread, ConfigParserClass
 from gluon.globals import current
 
 locker = thread.allocate_lock()
@@ -120,7 +120,7 @@ class AppConfigLoader(object):
         self.read_config()
 
     def read_config_ini(self):
-        config = configparser.SafeConfigParser()
+        config = ConfigParserClass()
         config.read(self.file)
         settings = {}
         for section in config.sections():
