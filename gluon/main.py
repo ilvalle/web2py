@@ -176,7 +176,7 @@ def serve_controller(request, response, session):
     # ##################################################
 
     run_models_in(environment)
-    response._view_environment = environment.copy()
+    response._view_environment = copy.copy(environment)
     page = run_controller_in(request.controller, request.function, environment)
     if isinstance(page, dict):
         response._vars = page
