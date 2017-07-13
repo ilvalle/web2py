@@ -8,7 +8,7 @@ from __future__ import print_function
 import os
 import sys
 import unittest
-
+import copy
 
 from gluon.compileapp import build_environment, run_controller_in, run_view_in, compile_application, run_models_in, remove_compiled_application
 from gluon.languages import translator
@@ -89,7 +89,10 @@ class TestAppAdmin(unittest.TestCase):
         self.assertTrue('db' in result['databases'])
         self.env.update(result)
         try:
-            model_env = build_environment(self.env['request'], self.env['response'], self.env['session'])
+            request = copy.copy(self.env['request'])
+            response = copy.copy(self.env['response'])
+            session = copy.copy(self.env['session'])
+            model_env = build_environment(request, response, session)
             run_models_in(model_env)
             self.assertTrue('myconf' in model_env)
             self.run_view()
