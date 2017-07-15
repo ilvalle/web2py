@@ -23,6 +23,7 @@ from gluon.contrib.appconfig import AppConfig
 # once in production, remove reload=True to gain full speed
 # -------------------------------------------------------------------------
 myconf = AppConfig(reload=True)
+print(myconf.get('db.uri'))
 
 if not request.env.web2py_runtime_gae:
     # ---------------------------------------------------------------------

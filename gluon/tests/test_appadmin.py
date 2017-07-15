@@ -93,6 +93,8 @@ class TestAppAdmin(unittest.TestCase):
             response = copy.copy(self.env['response'])
             session = copy.copy(self.env['session'])
             model_env = build_environment(request, response, session)
+            model_env['response'].models_to_run = [r'^db\.py$']
+            model_env['request'].controller = 'default'
             run_models_in(model_env)
             self.assertTrue('myconf' in model_env)
             self.run_view()
